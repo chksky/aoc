@@ -42,4 +42,27 @@ export const solve1 = (input) => {
   return sum;
 };
 
-export const solve2 = (input) => {};
+const fixOrder = (allRules, update) => {
+  return update.toSorted((a, b) => {
+    const rule = allRules.filter(
+      (r) => (r[0] == a && r[1] == b) || (r[0] == b && r[1] == a),
+    )[0];
+
+    if (rule[0] == a && rule[1] == b) return 1;
+    if (rule[1] == a && rule[0] == b) return -1;
+  });
+};
+
+export const solve2 = (input) => {
+  const { rules, updates } = parse(input);
+
+  let sum = 0;
+  for (const update of updates) {
+    if (!checkOrder(rules, update)) {
+      const fixed = fixOrder(rules, update);
+      sum += Number(fixed[Math.floor(update.length / 2)]);
+    }
+  }
+
+  return sum;
+};
