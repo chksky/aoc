@@ -29,6 +29,19 @@ const rotateDir = (dir) => {
   return dirs[dirs.indexOf(dir) + 1];
 };
 
+const makeMove = (pos, dir) => {
+  const move = DIR[dir];
+  const newRow = pos[0] + move[0];
+  const newCol = pos[1] + move[1];
+
+  return [newRow, newCol];
+};
+
+let looped = [];
+
+const isOut = (pos, lab) =>
+  pos[1] >= lab[0].length || pos[1] < 0 || pos[0] >= lab.length || pos[0] < 0;
+
 const navigate = (guard, lab) => {
   const visited = new Set();
 
@@ -37,26 +50,17 @@ const navigate = (guard, lab) => {
   let { dir, pos } = guard;
   visited.add(`${pos[0]},${pos[1]}`);
   while (true) {
-    const row = lab[pos[0]];
+    const newPos = makeMove(pos, dir);
 
-    const move = DIR[dir];
-    const newRow = pos[0] + move[0];
-    const newCol = pos[1] + move[1];
-
-    if (
-      newCol >= row.lenght ||
-      newCol < 0 ||
-      newRow >= lab.length ||
-      newRow < 0
-    ) {
+    if (isOut(newPos, lab)) {
       return visited.size;
     }
 
-    if (getAtPos([newRow, newCol]) == "#") {
+    if (getAtPos(newPos) == "#") {
       dir = rotateDir(dir);
     } else {
-      visited.add(`${newRow},${newCol}`);
-      pos = [newRow, newCol];
+      visited.add(newPos.join(","));
+      pos = newPos;
     }
   }
 };
@@ -67,4 +71,67 @@ export const solve1 = (input) => {
   return navigate(guard, lab);
 };
 
-export const solve2 = (input) => {};
+const isLooped = (guard, lab, obsPos) => {
+  const getAtPos = (pos) =>
+    pos[0] === obsPos[0] && pos[1] === obsPos[1] ? "#" : lab[pos[0]][pos[1]];
+
+  const genPosKey = (pos, dir) => `${pos.join(",")}${dir}`;
+
+  let { dir, pos } = guard;
+  let visited = new Set();
+  while (true) {
+    const posKey = genPosKey(pos, dir);
+    if (visited.has(posKey)) {
+      looped.push(obsPos);
+      return true;
+    }
+
+    visited.add(posKey);
+    const newPos = makeMove(pos, dir);
+
+    if (isOut(newPos, lab)) return false;
+
+    if (getAtPos(newPos) === "#") {
+      dir = rotateDir(dir);
+    } else {
+      pos = newPos;
+    }
+  }
+};
+
+const findLoops = (guard, lab) => {
+  const getAtPos = (pos) => lab[pos[0]][pos[1]];
+
+  let { dir, pos } = guard;
+  const obstructions = new Set();
+  const visited = new Set();
+  while (true) {
+    visited.add(pos.join(","));
+    const newPos = makeMove(pos, dir);
+
+    if (isOut(newPos, lab)) {
+      return obstructions.size;
+    }
+
+    if (getAtPos(newPos) === "#") {
+      dir = rotateDir(dir);
+    } else {
+      if (!visited.has(newPos.join(","))) {
+        const looped = isLooped({ dir, pos }, lab, newPos);
+        if (looped) {
+          obstructions.add(newPos.join(","));
+        }
+      }
+
+      pos = newPos;
+    }
+  }
+};
+
+export const solve2 = (input) => {
+  const { lab, guard } = parse(input);
+
+  const loopsCount = findLoops(guard, lab);
+
+  return loopsCount;
+};
