@@ -35,11 +35,38 @@ const evaluate = (numbers, operators) => {
   return left;
 };
 
+const evalCheck = (numbers, operators, target) => {
+  let left = target;
+  for (let i = numbers.length - 1; i > 0; i--) {
+    const operator = operators[i - 1];
+    const right = numbers[i];
+
+    if (operator === "+") left = left - right;
+    else if (operator === "*") left = left / right;
+    else {
+      const leftStr = String(left);
+      const rightStr = String(right);
+      if (
+        leftStr.indexOf(rightStr) === -1 ||
+        leftStr.length - leftStr.lastIndexOf(rightStr) !== rightStr.length
+      ) {
+        return false;
+      }
+
+      left = Number(leftStr.substring(0, leftStr.length - rightStr.length));
+    }
+
+    if (left !== Math.floor(left) || left < 0) return false;
+  }
+
+  return left === numbers[0];
+};
+
 const canBeTrue = (target, numbers, operators) => {
   const combinations = genCombinations(operators, numbers.length - 1);
 
   for (const combination of combinations) {
-    if (evaluate(numbers, combination) === target) return true;
+    if (evalCheck(numbers, combination, target)) return true;
   }
 
   return false;
