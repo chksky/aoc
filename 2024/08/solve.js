@@ -55,6 +55,26 @@ const getAntinodes = (a, b) => {
   return [left, right];
 };
 
+const getLeftAntinode = (a, b, multiplier) => {
+  const antinodeOffset = [Math.abs(a[0] - b[0]), Math.abs(b[1] - a[1])];
+  const relation = getRelation(a, b);
+
+  return [
+    a[0] - relation[0] * antinodeOffset[0] * multiplier,
+    a[1] - relation[1] * antinodeOffset[1] * multiplier,
+  ];
+};
+
+const getRightAntinode = (a, b, multiplier) => {
+  const antinodeOffset = [Math.abs(a[0] - b[0]), Math.abs(b[1] - a[1])];
+  const relation = getRelation(a, b);
+
+  return [
+    b[0] + relation[0] * antinodeOffset[0] * multiplier,
+    b[1] + relation[1] * antinodeOffset[1] * multiplier,
+  ];
+};
+
 const countAntinodes = (antenas, mapDimetions) => {
   const antinodes = new Set();
 
@@ -75,6 +95,36 @@ const countAntinodes = (antenas, mapDimetions) => {
   return antinodes.size;
 };
 
+const countAntinodes2 = (antenas, mapDimetions) => {
+  const antinodes = new Set();
+
+  for (const [_, locations] of antenas) {
+    for (let i = 0; i < locations.length; i++) {
+      const a = locations[i];
+      for (let j = i + 1; j < locations.length; j++) {
+        const b = locations[j];
+
+        antinodes.add(a.join(","));
+        antinodes.add(b.join(","));
+
+        let mul = 1;
+        while (isOnMap(getLeftAntinode(a, b, mul), mapDimetions)) {
+          antinodes.add(getLeftAntinode(a, b, mul).join(","));
+          mul++;
+        }
+
+        mul = 1;
+        while (isOnMap(getRightAntinode(a, b, mul), mapDimetions)) {
+          antinodes.add(getRightAntinode(a, b, mul).join(","));
+          mul++;
+        }
+      }
+    }
+  }
+
+  return antinodes.size;
+};
+
 export const solve1 = (input) => {
   const { antenas, mapDimetions } = parse(input);
 
@@ -84,7 +134,9 @@ export const solve1 = (input) => {
 };
 
 export const solve2 = (input) => {
-  let sum = 0;
+  const { antenas, mapDimetions } = parse(input);
+
+  let sum = countAntinodes2(antenas, mapDimetions);
 
   return sum;
 };
