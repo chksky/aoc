@@ -36,4 +36,40 @@ export const solve1 = (input) => {
   return numbers.length;
 };
 
-export const solve2 = (input) => {};
+const sum = (arr) => arr.reduce((acc, i) => acc + i, 0);
+
+function memo(fn) {
+  const cache = new Map();
+
+  const memoizedFn = (...arg) => {
+    const key = arg.join(',');
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    const result = fn(...arg);
+    cache.set(key, result);
+
+    return result;
+  };
+
+  return memoizedFn;
+}
+
+const countStoneNumbers = memo((stone, blinksLeft) => {
+  if (blinksLeft === 0) return 1;
+
+  const newStones = makeNewStone(stone);
+
+  return sum(newStones.map((s) => countStoneNumbers(s, blinksLeft - 1)));
+});
+
+export const solve2 = (input) => {
+  let numbers = parse(input);
+
+  let count = 0;
+  for (const number of numbers) {
+    count += countStoneNumbers(number, 75);
+  }
+
+  return count;
+};
