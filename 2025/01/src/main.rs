@@ -76,5 +76,5 @@ fn solve_p2() -> i32 {
 
 fn main() {
     println!("p1: {}", solve_p1());
-    println!("p1: {}", solve_p2());
+    println!("p2: {}", solve_p2());
 }
